@@ -1,9 +1,10 @@
-import strawberry
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from uuid import UUID as PyUUID
 from datetime import datetime
 from typing import cast
+from uuid import UUID as PyUUID
+
+import strawberry
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from models import UserModel
 

@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from strawberry.fastapi import GraphQLRouter
 from sqlalchemy.orm import Session
+from strawberry.fastapi import GraphQLRouter
 
-from db import get_db, engine
+from db import engine, get_db
 from schema import schema
 
 app = FastAPI(title="User Service", version="1.0.0")
