@@ -1,5 +1,10 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from strawberry.fastapi import GraphQLRouter
+
+from db import engine, get_db
+from schema import schema
 
 app = FastAPI(title="User Service", version="1.0.0")
 
@@ -25,3 +30,10 @@ def health_ready():
 @app.get("/")
 def root():
     return {"message": "User Service API"}
+
+
+def get_context(db: Session = Depends(get_db)):
+    return {"db": db}
+
+
+app.include_router(GraphQLRouter(schema, context_getter=get_context), prefix="/graphql")
