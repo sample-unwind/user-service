@@ -2,8 +2,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class UserModel(Base):
     __tablename__ = "users"

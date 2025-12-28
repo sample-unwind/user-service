@@ -16,19 +16,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health/live")
 def health_live():
     return {"status": "alive"}
+
 
 @app.get("/health/ready")
 def health_ready():
     return {"status": "ready"}
 
+
 @app.get("/")
 def root():
     return {"message": "User Service API"}
 
+
 def get_context(db: Session = Depends(get_db)):
     return {"db": db}
+
 
 app.include_router(GraphQLRouter(schema, context_getter=get_context), prefix="/graphql")
