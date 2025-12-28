@@ -7,6 +7,7 @@ from typing import cast
 
 from models import UserModel
 
+
 @strawberry.type
 class User:
     id: str
@@ -14,6 +15,7 @@ class User:
     first_name: str
     last_name: str
     created_at: str  # this is an ISO string (timestamp)
+
 
 def to_graphql_user(u: UserModel) -> User:
     created_at = cast(datetime | None, u.created_at)
