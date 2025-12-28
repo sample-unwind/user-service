@@ -8,15 +8,17 @@ from sqlalchemy.orm import Session
 
 from models import UserModel
 
-
 @strawberry.type
 class User:
     id: str
     email: str
     first_name: str
     last_name: str
-    created_at: str  # this is an ISO string (timestamp)
+    created_at: str  # ISO string
 
+@strawberry.type
+class DeleteResult:
+    success: bool
 
 def to_graphql_user(u: UserModel) -> User:
     created_at = cast(datetime | None, u.created_at)
@@ -27,7 +29,6 @@ def to_graphql_user(u: UserModel) -> User:
         last_name=u.last_name,
         created_at=created_at.isoformat() if created_at else "",
     )
-
 
 @strawberry.type
 class Query:
@@ -55,7 +56,6 @@ class Query:
         ).scalar_one_or_none()
         return to_graphql_user(row) if row else None
 
-
 @strawberry.type
 class Mutation:
     @strawberry.mutation
@@ -74,5 +74,48 @@ class Mutation:
         db.refresh(user)
         return to_graphql_user(user)
 
+    @strawberry.mutation
+    def update_user(
+        self,
+        info,
+        id: str,
+        email: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+    ) -> User:
+        db: Session = info.context["db"]
+
+        user = db.get(UserModel, PyUUID(id))
+        if not user:
+            raise ValueError("User not found")
+
+        if email is not None and email != user.email:
+            existing = db.execute(
+                select(UserModel).where(UserModel.email == email)
+            ).scalar_one_or_none()
+            if existing:
+                raise ValueError("Email already exists")
+            user.email = email
+
+        if first_name is not None:
+            user.first_name = first_name
+        if last_name is not None:
+            user.last_name = last_name
+
+        db.commit()
+        db.refresh(user)
+        return to_graphql_user(user)
+
+    @strawberry.mutation
+    def delete_user(self, info, id: str) -> DeleteResult:
+        db: Session = info.context["db"]
+
+        user = db.get(UserModel, PyUUID(id))
+        if not user:
+            return DeleteResult(success=False)
+
+        db.delete(user)
+        db.commit()
+        return DeleteResult(success=True)
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
