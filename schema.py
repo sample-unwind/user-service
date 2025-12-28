@@ -2,9 +2,10 @@ import strawberry
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from uuid import UUID as PyUUID
+from datetime import datetime
+from typing import cast
 
 from models import UserModel
-
 
 @strawberry.type
 class User:
@@ -14,14 +15,14 @@ class User:
     last_name: str
     created_at: str  # this is an ISO string (timestamp)
 
-
 def to_graphql_user(u: UserModel) -> User:
+    created_at = cast(datetime | None, u.created_at)
     return User(
         id=str(u.id),
         email=u.email,
         first_name=u.first_name,
         last_name=u.last_name,
-        created_at=u.created_at.isoformat() if u.created_at else "",
+        created_at=created_at.isoformat() if created_at else "",
     )
 
 
