@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from models import UserModel
 
+
 @strawberry.type
 class User:
     id: str
@@ -16,9 +17,11 @@ class User:
     last_name: str
     created_at: str  # ISO string
 
+
 @strawberry.type
 class DeleteResult:
     success: bool
+
 
 def to_graphql_user(u: UserModel) -> User:
     created_at = cast(datetime | None, u.created_at)
@@ -29,6 +32,7 @@ def to_graphql_user(u: UserModel) -> User:
         last_name=u.last_name,
         created_at=created_at.isoformat() if created_at else "",
     )
+
 
 @strawberry.type
 class Query:
@@ -55,6 +59,7 @@ class Query:
             select(UserModel).where(UserModel.email == email)
         ).scalar_one_or_none()
         return to_graphql_user(row) if row else None
+
 
 @strawberry.type
 class Mutation:
@@ -117,5 +122,6 @@ class Mutation:
         db.delete(user)
         db.commit()
         return DeleteResult(success=True)
+
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
