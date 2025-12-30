@@ -6,3 +6,4 @@ python-keycloak
 pydantic
 httpx
 python-multipart
+strawberry-graphql[fastapi]
