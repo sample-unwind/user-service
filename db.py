@@ -39,4 +39,6 @@ except Exception as e:
     logger.error(f"Failed to create database tables: {e}")
     # Don't crash the application if table creation fails
     # Tables might already exist or permissions might be insufficient
-    logger.warning("Continuing without table creation - tables may need to be created manually")
+    logger.warning(
+        "Continuing without table creation - tables may need to be created manually"
+    )
