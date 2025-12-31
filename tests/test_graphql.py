@@ -25,6 +25,7 @@ def override_get_db():
 # Override the database dependency
 app.dependency_overrides = {}
 from db import get_db
+
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
@@ -107,6 +108,7 @@ def test_graphql_user_by_id_query():
 def test_graphql_user_by_email_query():
     """Test querying user by email."""
     import time
+
     timestamp = str(int(time.time()))
     email = f"test_{timestamp}@example.com"
 
