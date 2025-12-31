@@ -79,11 +79,19 @@ User {
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
+**Local Development:**
 The service will be available at:
 - **API**: `http://localhost:8000`
 - **GraphQL**: `http://localhost:8000/graphql`
 - **API Docs**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
+
+**Production Deployment:**
+The service is deployed at `https://parkora.crn.si/api/v1/user`:
+- **API**: `https://parkora.crn.si/api/v1/user/`
+- **GraphQL**: `https://parkora.crn.si/api/v1/user/graphql`
+- **API Docs**: `https://parkora.crn.si/api/v1/user/docs`
+- **ReDoc**: `https://parkora.crn.si/api/v1/user/redoc`
 
 ## 🔧 Configuration
 
@@ -110,11 +118,13 @@ KEYCLOAK_CLIENT_SECRET=your-client-secret-here
 
 ### OpenAPI Documentation
 
-FastAPI automatically generates interactive API documentation:
+FastAPI automatically generates interactive API documentation. Since the service is deployed behind Kong ingress at `/api/v1/user`, access the documentation at:
 
-- **Swagger UI**: `/docs` - Interactive API documentation
-- **ReDoc**: `/redoc` - Alternative documentation format
-- **OpenAPI JSON**: `/openapi.json` - Machine-readable API specification
+- **Swagger UI**: `https://parkora.crn.si/api/v1/user/docs` - Interactive API documentation
+- **ReDoc**: `https://parkora.crn.si/api/v1/user/redoc` - Alternative documentation format
+- **OpenAPI JSON**: `https://parkora.crn.si/api/v1/user/openapi.json` - Machine-readable API specification
+
+**Note**: Do not access `/docs`, `/redoc`, or `/openapi.json` directly at the root domain. Always use the full path `/api/v1/user/` prefix.
 
 ### GraphQL Endpoint
 - **URL**: `/graphql`
