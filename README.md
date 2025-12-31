@@ -79,7 +79,11 @@ User {
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-The service will be available at `http://localhost:8000`
+The service will be available at:
+- **API**: `http://localhost:8000`
+- **GraphQL**: `http://localhost:8000/graphql`
+- **API Docs**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
 ## 🔧 Configuration
 
@@ -103,6 +107,14 @@ KEYCLOAK_CLIENT_SECRET=your-client-secret-here
 ```
 
 ## 📡 API Documentation
+
+### OpenAPI Documentation
+
+FastAPI automatically generates interactive API documentation:
+
+- **Swagger UI**: `/docs` - Interactive API documentation
+- **ReDoc**: `/redoc` - Alternative documentation format
+- **OpenAPI JSON**: `/openapi.json` - Machine-readable API specification
 
 ### GraphQL Endpoint
 - **URL**: `/graphql`
@@ -223,12 +235,45 @@ mutation DeleteUser($id: String!) {
 **Liveness Probe**
 - **URL**: `/health/live`
 - **Method**: GET
-- **Response**: `{"status": "healthy"}`
+- **Response**: `{"status": "alive", "service": "user-service", "version": "1.0.0"}`
 
 **Readiness Probe**
 - **URL**: `/health/ready`
 - **Method**: GET
-- **Response**: `{"status": "healthy"}`
+- **Response**: `{"status": "ready", "service": "user-service", "version": "1.0.0"}`
+
+### User Statistics
+
+**Get User Stats**
+- **URL**: `/stats`
+- **Method**: GET
+- **Response**:
+```json
+{
+  "total_users": 5,
+  "users_with_keycloak_id": 3,
+  "recent_users": 2
+}
+```
+
+### API Root
+
+**Service Information**
+- **URL**: `/`
+- **Method**: GET
+- **Response**:
+```json
+{
+  "message": "User Service API",
+  "version": "1.0.0",
+  "docs": "/docs",
+  "graphql": "/graphql",
+  "health": {
+    "live": "/health/live",
+    "ready": "/health/ready"
+  }
+}
+```
 
 ## 🧪 Testing
 

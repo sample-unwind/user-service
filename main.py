@@ -2,14 +2,47 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from keycloak import KeycloakOpenID
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from strawberry.fastapi import GraphQLRouter
 
 from db import get_db
+from models import UserModel
 from schema import schema
 
-app = FastAPI(title="User Service", version="1.0.0")
+
+# Pydantic models for API responses
+class HealthResponse(BaseModel):
+    status: str
+    service: str = "user-service"
+    version: str = "1.0.0"
+
+
+class UserStatsResponse(BaseModel):
+    total_users: int
+    users_with_keycloak_id: int
+    recent_users: int
+
+
+
+
+app = FastAPI(
+    title="User Service API",
+    description="A comprehensive user management microservice for the Parkora smart parking system. Provides GraphQL API for user operations with Keycloak authentication integration.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    contact={
+        "name": "Parkora Team",
+        "url": "https://parkora.crn.si",
+    },
+    license_info={
+        "name": "MIT",
+    },
+)
 
 # Keycloak configuration
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.parkora.crn.si/auth/")
@@ -33,19 +66,90 @@ app.add_middleware(
 )
 
 
-@app.get("/health/live")
+@app.get(
+    "/health/live",
+    response_model=HealthResponse,
+    summary="Liveness Health Check",
+    description="Check if the service is alive and responding to requests.",
+    tags=["Health"]
+)
 def health_live():
-    return {"status": "alive"}
+    """Liveness probe - indicates if the service is running."""
+    return HealthResponse(status="alive")
 
 
-@app.get("/health/ready")
-def health_ready():
-    return {"status": "ready"}
+@app.get(
+    "/health/ready",
+    response_model=HealthResponse,
+    summary="Readiness Health Check",
+    description="Check if the service is ready to handle requests, including database connectivity.",
+    tags=["Health"]
+)
+def health_ready(db: Session = Depends(get_db)):
+    """Readiness probe - indicates if the service is ready to handle traffic."""
+    try:
+        # Test database connectivity
+        db.execute(func.text("SELECT 1"))
+        return HealthResponse(status="ready")
+    except Exception:
+        return HealthResponse(status="unhealthy")
 
 
-@app.get("/")
+@app.get(
+    "/",
+    summary="API Root",
+    description="Welcome endpoint for the User Service API.",
+    tags=["General"]
+)
 def root():
-    return {"message": "User Service API"}
+    """Root endpoint providing basic API information."""
+    return {
+        "message": "User Service API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "graphql": "/graphql",
+        "health": {
+            "live": "/health/live",
+            "ready": "/health/ready"
+        }
+    }
+
+
+@app.get(
+    "/stats",
+    response_model=UserStatsResponse,
+    summary="User Statistics",
+    description="Get basic statistics about users in the system.",
+    tags=["Analytics"]
+)
+def get_user_stats(db: Session = Depends(get_db)):
+    """Get user statistics for monitoring and analytics."""
+    try:
+        # Total users
+        total_users = db.query(func.count(UserModel.id)).scalar()
+
+        # Users with Keycloak ID
+        users_with_keycloak = db.query(func.count(UserModel.id)).filter(
+            UserModel.keycloak_user_id.isnot(None)
+        ).scalar()
+
+        # Recent users (last 30 days - simplified for PostgreSQL)
+        recent_users = db.query(func.count(UserModel.id)).filter(
+            UserModel.created_at >= func.now() - func.interval('30 day')
+        ).scalar()
+
+        return UserStatsResponse(
+            total_users=total_users or 0,
+            users_with_keycloak_id=users_with_keycloak or 0,
+            recent_users=recent_users or 0
+        )
+    except Exception:
+        # Return zeros if database query fails
+        return UserStatsResponse(
+            total_users=0,
+            users_with_keycloak_id=0,
+            recent_users=0
+        )
 
 
 def get_current_user(request: Request) -> dict | None:
