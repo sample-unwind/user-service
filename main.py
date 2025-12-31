@@ -2,10 +2,10 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from keycloak import KeycloakOpenID
-from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 from strawberry.fastapi import GraphQLRouter
 
 from db import get_db
