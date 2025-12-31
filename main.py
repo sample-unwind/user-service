@@ -133,7 +133,7 @@ def get_user_stats(db: Session = Depends(get_db)):
         # Recent users (last 30 days - simplified for PostgreSQL)
         recent_users = (
             db.query(func.count(UserModel.id))
-            .filter(UserModel.created_at >= func.now() - func.interval("30 day"))
+            .filter(UserModel.created_at >= func.now() - func.text("interval '30 days'"))
             .scalar()
         )
 
