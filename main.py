@@ -2,6 +2,7 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from keycloak import KeycloakOpenID
 from pydantic import BaseModel
 from sqlalchemy import func
@@ -33,10 +34,6 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    root_path="/api/v1/user",
-    servers=[
-        {"url": "/api/v1/user", "description": "Production server"},
-    ],
     contact={
         "name": "Parkora Team",
         "url": "https://parkora.crn.si",
@@ -45,6 +42,28 @@ app = FastAPI(
         "name": "MIT",
     },
 )
+
+
+# Customize OpenAPI schema for proxy deployment
+def custom_openapi() -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        contact=app.contact,
+        license_info=app.license_info,
+    )
+    openapi_schema["servers"] = [
+        {"url": "/api/v1/user", "description": "Production server"},
+    ]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 # Keycloak configuration
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.parkora.crn.si/auth/")
@@ -137,7 +156,9 @@ def get_user_stats(db: Session = Depends(get_db)):
         # Recent users (last 30 days - simplified for PostgreSQL)
         recent_users = (
             db.query(func.count(UserModel.id))
-            .filter(UserModel.created_at >= func.now() - func.text("interval '30 days'"))
+            .filter(
+                UserModel.created_at >= func.now() - func.text("interval '30 days'")
+            )
             .scalar()
         )
 
