@@ -112,6 +112,7 @@ def root():
 
 @app.get(
     "/stats",
+    response_model=UserStatsResponse,
     summary="User Statistics",
     description="Get basic statistics about users in the system.",
     tags=["Analytics"],
@@ -136,18 +137,18 @@ def get_user_stats(db: Session = Depends(get_db)):
             .scalar()
         )
 
-        return {
-            "total_users": total_users or 0,
-            "users_with_keycloak_id": users_with_keycloak or 0,
-            "recent_users": recent_users or 0,
-        }
+        return UserStatsResponse(
+            total_users=total_users or 0,
+            users_with_keycloak_id=users_with_keycloak or 0,
+            recent_users=recent_users or 0,
+        )
     except Exception:
         # Return zeros if database query fails
-        return {
-            "total_users": 0,
-            "users_with_keycloak_id": 0,
-            "recent_users": 0,
-        }
+        return UserStatsResponse(
+            total_users=0,
+            users_with_keycloak_id=0,
+            recent_users=0,
+        )
 
 
 def get_current_user(request: Request) -> dict | None:
