@@ -18,7 +18,10 @@ def test_health_ready():
     response = client.get("/health/ready")
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] in ["ready", "unhealthy"]  # Allow unhealthy for test environment
+    assert data["status"] in [
+        "ready",
+        "unhealthy",
+    ]  # Allow unhealthy for test environment
     assert data["service"] == "user-service"
     assert data["version"] == "1.0.0"
 
