@@ -26,8 +26,6 @@ class UserStatsResponse(BaseModel):
     recent_users: int
 
 
-
-
 app = FastAPI(
     title="User Service API",
     description="A comprehensive user management microservice for the Parkora smart parking system. Provides GraphQL API for user operations with Keycloak authentication integration.",
@@ -71,7 +69,7 @@ app.add_middleware(
     response_model=HealthResponse,
     summary="Liveness Health Check",
     description="Check if the service is alive and responding to requests.",
-    tags=["Health"]
+    tags=["Health"],
 )
 def health_live():
     """Liveness probe - indicates if the service is running."""
@@ -83,7 +81,7 @@ def health_live():
     response_model=HealthResponse,
     summary="Readiness Health Check",
     description="Check if the service is ready to handle requests, including database connectivity.",
-    tags=["Health"]
+    tags=["Health"],
 )
 def health_ready(db: Session = Depends(get_db)):
     """Readiness probe - indicates if the service is ready to handle traffic."""
@@ -99,7 +97,7 @@ def health_ready(db: Session = Depends(get_db)):
     "/",
     summary="API Root",
     description="Welcome endpoint for the User Service API.",
-    tags=["General"]
+    tags=["General"],
 )
 def root():
     """Root endpoint providing basic API information."""
@@ -108,10 +106,7 @@ def root():
         "version": "1.0.0",
         "docs": "/docs",
         "graphql": "/graphql",
-        "health": {
-            "live": "/health/live",
-            "ready": "/health/ready"
-        }
+        "health": {"live": "/health/live", "ready": "/health/ready"},
     }
 
 
@@ -120,7 +115,7 @@ def root():
     response_model=UserStatsResponse,
     summary="User Statistics",
     description="Get basic statistics about users in the system.",
-    tags=["Analytics"]
+    tags=["Analytics"],
 )
 def get_user_stats(db: Session = Depends(get_db)):
     """Get user statistics for monitoring and analytics."""
@@ -129,26 +124,28 @@ def get_user_stats(db: Session = Depends(get_db)):
         total_users = db.query(func.count(UserModel.id)).scalar()
 
         # Users with Keycloak ID
-        users_with_keycloak = db.query(func.count(UserModel.id)).filter(
-            UserModel.keycloak_user_id.isnot(None)
-        ).scalar()
+        users_with_keycloak = (
+            db.query(func.count(UserModel.id))
+            .filter(UserModel.keycloak_user_id.isnot(None))
+            .scalar()
+        )
 
         # Recent users (last 30 days - simplified for PostgreSQL)
-        recent_users = db.query(func.count(UserModel.id)).filter(
-            UserModel.created_at >= func.now() - func.interval('30 day')
-        ).scalar()
+        recent_users = (
+            db.query(func.count(UserModel.id))
+            .filter(UserModel.created_at >= func.now() - func.interval("30 day"))
+            .scalar()
+        )
 
         return UserStatsResponse(
             total_users=total_users or 0,
             users_with_keycloak_id=users_with_keycloak or 0,
-            recent_users=recent_users or 0
+            recent_users=recent_users or 0,
         )
     except Exception:
         # Return zeros if database query fails
         return UserStatsResponse(
-            total_users=0,
-            users_with_keycloak_id=0,
-            recent_users=0
+            total_users=0, users_with_keycloak_id=0, recent_users=0
         )
 
 
