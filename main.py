@@ -34,6 +34,9 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     root_path="/api/v1/user",
+    servers=[
+        {"url": "/api/v1/user", "description": "Production server"},
+    ],
     contact={
         "name": "Parkora Team",
         "url": "https://parkora.crn.si",
