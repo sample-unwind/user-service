@@ -2,7 +2,6 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 from keycloak import KeycloakOpenID
 from pydantic import BaseModel
 from sqlalchemy import func
@@ -43,27 +42,11 @@ app = FastAPI(
     },
 )
 
-
-# Customize OpenAPI schema for proxy deployment
-def custom_openapi() -> dict:
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-        contact=app.contact,
-        license_info=app.license_info,
-    )
-    openapi_schema["servers"] = [
-        {"url": "/api/v1/user", "description": "Production server"},
-    ]
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
+# Set servers for OpenAPI schema after app creation
+app.servers = [{"url": "/api/v1/user", "description": "Production server"}]
 
 
-app.openapi = custom_openapi  # type: ignore[method-assign]
+
 
 # Keycloak configuration
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.parkora.crn.si/auth/")
