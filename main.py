@@ -33,6 +33,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    root_path="/api/v1/user",
     contact={
         "name": "Parkora Team",
         "url": "https://parkora.crn.si",
@@ -43,7 +44,7 @@ app = FastAPI(
 )
 
 # Set servers for OpenAPI schema after app creation
-app.servers = [{"url": "/api/v1/user", "description": "Production server"}]
+app.servers = [{"url": "https://parkora.crn.si", "description": "Production server"}]
 
 
 # Keycloak configuration
