@@ -73,7 +73,6 @@ jobs:
            push: true
            tags: ${{ steps.meta.outputs.tags }}
            labels: ${{ steps.meta.outputs.labels }}
-           platforms: linux/amd64,linux/arm64
 
        # NOTE: Deployment to AKS is manual due to Azure Student subscription limitations
        # TODO: After successful build, manually run: helm upgrade --install user-service ./helm/user-service -n parkora
