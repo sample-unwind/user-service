@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session
 from strawberry.fastapi import GraphQLRouter
 
 from db import engine, get_db
+from models import Base
 from schema import schema
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="User Service", version="1.0.0")
 
