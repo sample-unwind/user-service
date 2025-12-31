@@ -13,6 +13,7 @@ from models import UserModel
 class User:
     id: str
     email: str
+    keycloak_user_id: str | None
     first_name: str
     last_name: str
     created_at: str  # ISO string
@@ -28,6 +29,7 @@ def to_graphql_user(u: UserModel) -> User:
     return User(
         id=str(u.id),
         email=u.email,
+        keycloak_user_id=str(u.keycloak_user_id) if u.keycloak_user_id else None,
         first_name=u.first_name,
         last_name=u.last_name,
         created_at=created_at.isoformat() if created_at else "",
@@ -60,11 +62,28 @@ class Query:
         ).scalar_one_or_none()
         return to_graphql_user(row) if row else None
 
+    @strawberry.field
+    def user_by_keycloak_id(self, info, keycloak_user_id: str) -> User | None:
+        db: Session = info.context["db"]
+        row = db.execute(
+            select(UserModel).where(
+                UserModel.keycloak_user_id == PyUUID(keycloak_user_id)
+            )
+        ).scalar_one_or_none()
+        return to_graphql_user(row) if row else None
+
 
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def create_user(self, info, email: str, first_name: str, last_name: str) -> User:
+    def create_user(
+        self,
+        info,
+        email: str,
+        first_name: str,
+        last_name: str,
+        keycloak_user_id: str | None = None,
+    ) -> User:
         db: Session = info.context["db"]
 
         existing = db.execute(
@@ -73,7 +92,21 @@ class Mutation:
         if existing:
             raise ValueError("Email already exists")
 
-        user = UserModel(email=email, first_name=first_name, last_name=last_name)
+        if keycloak_user_id:
+            existing_keycloak = db.execute(
+                select(UserModel).where(
+                    UserModel.keycloak_user_id == PyUUID(keycloak_user_id)
+                )
+            ).scalar_one_or_none()
+            if existing_keycloak:
+                raise ValueError("Keycloak user ID already exists")
+
+        user = UserModel(
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            keycloak_user_id=PyUUID(keycloak_user_id) if keycloak_user_id else None,
+        )
         db.add(user)
         db.commit()
         db.refresh(user)

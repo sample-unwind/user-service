@@ -40,13 +40,40 @@ jobs:
     needs: [lint-test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+       - name: Checkout code
+         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t placeholder/user-service:latest .
+       - name: Log in to GitHub Container Registry
+         uses: docker/login-action@v3
+         with:
+           registry: ghcr.io
+           username: ${{ github.actor }}
+           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # TODO: Log in to ACR
-      # TODO: Push image to youracr.azurecr.io/user-service:latest
-      # TODO: Set AKS context and helm upgrade user-service
+       - name: Extract metadata
+         id: meta
+         uses: docker/metadata-action@v5
+         with:
+           images: ghcr.io/sample-unwind/user-service
+           tags: |
+             type=ref,event=branch
+             type=ref,event=pr
+             type=ref,event=tag
+             type=sha,prefix={{branch}}-
+             type=raw,value=latest,enable={{is_default_branch}}
+
+       - name: Build and push Docker image
+         uses: docker/build-push-action@v5
+         with:
+           context: .
+           push: true
+           tags: ${{ steps.meta.outputs.tags }}
+           labels: ${{ steps.meta.outputs.labels }}
+           platforms: linux/amd64,linux/arm64
+
+       # NOTE: Deployment to AKS is manual due to Azure Student subscription limitations
+       # TODO: After successful build, manually run: helm upgrade --install user-service ./helm/user-service -n parkora
