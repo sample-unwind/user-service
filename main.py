@@ -46,8 +46,6 @@ app = FastAPI(
 app.servers = [{"url": "/api/v1/user", "description": "Production server"}]
 
 
-
-
 # Keycloak configuration
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "https://keycloak.parkora.crn.si/auth/")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "parkora")
