@@ -32,7 +32,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    openapi_url="/api/v1/user/openapi.json",
     contact={
         "name": "Parkora Team",
         "url": "https://parkora.crn.si",
